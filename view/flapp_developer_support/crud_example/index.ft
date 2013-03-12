@@ -1,0 +1,63 @@
+[%- WRAPPER '/flapp_developer_support/_layout.ft' title='CRUD Exmaple' -%]
+<style type="text/css">
+th, td{ padding: 2px; }
+.odd{ background:#dff; }
+</style>
+<div id="content">
+	[% SET s = c.project.schema.ExampleMember %]
+	<form method="post" action="[% c.uri_for(c.path) %]">
+	[%- FILLINFORM c.req.params -%]
+	<table border>
+		<tr>
+			<th>[% s.column_label('name') %]</th>
+			<td><input name="name" /></td>
+		</tr>
+		<tr>
+			<th>[% s.column_label('hobbies') %]</th>
+			<td>
+				[%- FOREACH e IN s.column_enum('hobbies') -%]
+				<label><input type="checkbox" name="hobbies" value="[% e[0] %]">[% e[1] %]</label><br />
+				[%- END -%]
+			</td>
+		</tr>
+		<tr>
+			<td align="center" colspan="2"><input type="submit" name=".search" value="検索" /></td>
+		</tr>
+	</table>
+	[%- END -%]
+	</form>
+	<br />
+	[% pager.total_entries %]件中、[% pager.first %]～[% pager.last %]件目
+	[% IF (p = pager.previous_page) %]<a href="[% c.uri_for(c.path, {page => p}) %]">前へ</a>[% END %]
+	[% IF (p = pager.next_page) %]<a href="[% c.uri_for(c.path, {page => p}) %]">次へ</a>[% END %]
+	<table border>
+		<tr>
+			<th>ID</th>
+			<th>[% s.column_label('name') %]</th>
+			<th>[% s.column_label('email') %]</th>
+			<th>[% s.column_label('gender') %]</th>
+			<th>[% s.column_label('birthday') %]</th>
+			<th>[% s.column_label('tel') %]</th>
+			<th>[% s.column_label('hobbies') %]</th>
+			<th>[% s.column_label('money') %]</th>
+			<th>削除</th>
+		</tr>
+	[%- FOREACH r IN rows -%]
+		<tr class="[% loop.parity %]">
+			<td><a href="[% c.uri_for("edit/${r.id}") %]">[% r.id %]</a></td>
+			<td>[% r.name %]</td>
+			<td>[% r.email %]</td>
+			<td>[% r.cd2str('gender') %]</td>
+			<td>[% r.birthday %]</td>
+			<td>[% r.tel %]</td>
+			<td>[% r.cd2str('hobbies') %]</td>
+			<td>[% r.money | commify %]円</td>
+			<td><a href="[% c.uri_for("delete/${r.id}") %]"
+				onclick="return confirm('よろしいですか？')">削除</a></td>
+		</tr>
+	[%- END -%]
+	</table>
+	<br />
+	<a href="[% c.uri_for('new') %]">new</a>
+</div>
+[%- END -%]

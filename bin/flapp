@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+use Cwd;
+use FindBin;
+use lib Cwd::abs_path("$FindBin::Bin/../lib");
+use Flapp qw/-s -w/;
+use File::Find;
+
+sub err {
+    print STDERR "usage: flapp generate (Project|Platform) NAME [PATH]\n";
+    exit(1);
+}
+
+sub s {
+    my $pm = shift;
+    local $_;
+    Flapp->OS->cat($_, '<', $pm) || die "$!($pm)";
+    shift->() || die $pm;
+    Flapp->OS->cat($_, '>', $pm) || die "$!($pm)";
+}
+
+&err if (my $cmd = shift @ARGV || '') ne 'generate';
+&err if (my $type = shift @ARGV || '') !~ /^(Project|Platform)\z/;
+my $proj = shift @ARGV || &err;
+my $dst = shift || $proj;
+my @ign = qw(apps/MyCmdApp apps/MyPsgiProxy apps/MyWebApp);
+
+if($type eq 'Project'){
+    Flapp->generate(MyProject => $proj, $dst, {ignore => \@ign});
+    &s("$dst/lib/$proj.pm", sub{ s/__FLAPP_ROOT__/Flapp->root_dir/e });
+    
+    #Project should not be module.
+    find({
+        no_chdir => 1,
+        wanted => sub{ /\.pm/ && -f $_ && &s($_, sub{ s/^(use .+?) -m /$1 /m || 1 }) },
+    }, $dst);
+    
+}elsif($type eq 'Platform'){
+    Flapp->generate(MyProject => $proj, $dst, {ignore => [@ign, qw(
+        db generate log public tmp view
+        lib/MyProject/Config
+        lib/MyProject/Schema/Row/SchemaInfo.pm
+    )]});
+    &s("$dst/lib/$proj.pm", sub{ s/__FLAPP_ROOT__/Flapp->root_dir/e });
+    
+    #Platform doesn't have project.
+    &s("$dst/lib/$proj/Object.pm", sub{ s/^(use constant project =>)/#$1/m });
+    
+    #Nevertheless Tool requires project.
+    &s("$dst/apps/Tool/run.pl", sub{
+        s%^(use $proj .+)%$1\ndo{ no warnings; \*$proj\::Object::project = sub{ '$proj' } };%m;
+    });
+    
+    #Platform doesn't have SCHEMA_BASE
+    &s("$dst/lib/$proj/Schema/Default.pm", sub{ s/^(use constant SCHEMA_BASE)/#$1/m });
+    
+    Flapp->OS->mkdir("$dst/lib/$proj/Config");
+    Flapp->OS->mkdir("$dst/generate");
+    Flapp->generate(MyProject => 'MyProject', "$dst/generate/MyProject", {ignore => \@ign});
+    &s("$dst/generate/MyProject/lib/MyProject.pm", sub{
+            s/__FLAPP_ROOT__/'__'.uc($proj).'_ROOT__'/e
+         && s/FLAPP_ROOT/uc($proj).'_ROOT'/eg
+         && s/^ +#\$Flapp::UTF8 = 1;\n^ +#binmode.+\n//m
+         && s/Flapp/$proj/g
+    });
+    find({
+        no_chdir => 1,
+        wanted => sub{ /\.pm/ && -f $_ && &s($_, sub{ s%^(use .+)%
+            my $line = $1;
+            $line =~ s/Flapp/$proj/g;
+            $line =~ s/-m //;
+            $line;
+        %me }) },
+    }, "$dst/generate/MyProject");
+}

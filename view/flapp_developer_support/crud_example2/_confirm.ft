@@ -1,0 +1,31 @@
+<table border>
+	<tr>
+		<th>[% row.column_label('title') %]</th>
+		<td>[% row.title %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('category_id') %]</th>
+		<td>[% row.category.name %]</td>
+	</tr>
+	<tr>
+		<th>[% row.relation_label('entry_members') %]</th>
+		<td>
+			<table border>
+				<tr>
+					<th>名前</th>
+					<th>権限</th>
+				</tr>
+			[%- FOREACH r IN row.entry_members -%]
+				<tr>
+					<td>[% r.member.name %]</td>
+					<td>[% r.cd2str('priv_cd') %]</td>
+				</tr>
+			[%- END -%]
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.relation_label('content') %]</th>
+		<td>[% row.content.text %]</td>
+	</tr>
+</table>

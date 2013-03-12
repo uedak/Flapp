@@ -1,0 +1,67 @@
+[%- WRAPPER '_layout.ft' title='WEB GREP' -%]
+<style type="text/css">
+* { font-family: 'MS Gothic'; }
+dt { font-weight: bold; }
+dd { margin: 0 0 10px 10px; }
+.match table { border-collapse: collapse; width: 100%; }
+.match th { border: 1px solid darkgray; font-weight: normal; text-align: right; width: 30px; }
+.match td { border: 1px solid darkgray; }
+.match a { color: blue; }
+.match b { background: red; color: white; display:inline; font-weight: normal; }
+.match td { white-space: pre; }
+</style>
+<div id="content">
+	[%- FILLINFORM c.req.params -%]
+	<form method="post">
+	<div class="inputbox">
+		<dl>
+			<dt>検索条件</dt>
+			<dd>
+				<input name="-p" size="30" /><input type="submit" name=".search" value="検索">
+				　<label><input type="checkbox" name="-i" class="check" value="1" />大文字小文字を無視</label>
+				　<label><input type="checkbox" name="-r" class="check" value="1" />正規表現</label>
+				　前後<input name="-n" size="2" />行表示
+			</dd>
+			<dt>検索対象</dt>
+			<dd>
+				<input type="hidden" name="-d[]" />
+				[%- FOREACH d IN dirs -%]
+				<dl>
+					<dt>[% d[0] %]</dt>
+					<dd>
+						[%- FOREACH sd IN d[1] -%]
+						<label><input type="checkbox" class="check" name="-d" value="[% d[0] _ '/' _ sd %]"/>[% sd %]　</label>
+						[%- END -%]
+					</dd>
+				</dl>
+				[%- END -%]
+			</dd>
+			<dt>検索除外拡張子</dt>
+			<dd>
+				<input type="hidden" name="-x[]" />
+				[%- FOREACH xs IN excludes -%]
+					[%- FOREACH x IN xs -%]
+					<label><input type="checkbox" name="-x" class="check" value="[% x[0] %]" />[% x[0] %]　</label>
+					[%- END -%]
+					<br />
+				[%- END -%]
+			</dd>
+		</dl>
+	</div>
+	</form>
+	[%- END #fillinform -%]
+
+	<div class="match">
+	[%- WHILE (m = c.controller._webgrep_fetch(c)) -%]
+		<a>[% m.path | raw %]</a>
+		<table>
+		[%- FOREACH line IN m.lines -%]
+			<tr><th>[% line[0] %]</th><td>[% line[2] | raw %]</td></tr>
+		[%- END -%]
+		</table>
+		<br />
+	[%- END -%]
+	</div>
+
+</div>
+[%- END -%]

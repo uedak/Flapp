@@ -1,0 +1,3 @@
+[%- INCLUDE '_header.ft' h1='(TITLE)' #test -%]
+INDEX
+[%- INCLUDE './_footer.ft' #test -%]

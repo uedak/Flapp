@@ -1,0 +1,37 @@
+[%- WRAPPER '/flapp_developer_support/_layout.ft' title='CRUD Exmaple' -%]
+<style type="text/css">
+th, td{ padding: 2px; }
+.odd{ background:#dff; }
+</style>
+<div id="content">
+	[% SET s = c.project.schema.ExampleEntry %]
+	[% pager.total_entries %]件中、[% pager.first %]～[% pager.last %]件目
+	[% IF (p = pager.previous_page) %]<a href="[% c.uri_for(c.path, {page => p}) %]">前へ</a>[% END %]
+	[% IF (p = pager.next_page) %]<a href="[% c.uri_for(c.path, {page => p}) %]">次へ</a>[% END %]
+	<table border>
+		<tr>
+			<th>ID</th>
+			<th>[% s.column_label('title') %]</th>
+			<th>[% s.column_label('category_id') %]</th>
+			<th>[% s.relation_label('entry_members') %]</th>
+			<th>削除</th>
+		</tr>
+	[%- FOREACH r IN rows -%]
+		<tr class="[% loop.parity %]">
+			<td><a href="[% c.uri_for("edit/${r.id}") %]">[% r.id %]</a></td>
+			<td>[% r.title %]</td>
+			<td>[% r.category.name %]</td>
+			<td>
+				[%- FOREACH em IN r.entry_members -%]
+					[% em.member.name %]([% em.cd2str('priv_cd') %])<br />
+				[%- END -%]
+			</td>
+			<td><a href="[% c.uri_for("delete/${r.id}") %]"
+				onclick="return confirm('よろしいですか？')">削除</a></td>
+		</tr>
+	[%- END -%]
+	</table>
+	<br />
+	<a href="[% c.uri_for('new') %]">new</a>
+</div>
+[%- END -%]

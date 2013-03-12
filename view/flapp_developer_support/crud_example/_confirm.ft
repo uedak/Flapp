@@ -1,0 +1,30 @@
+<table border>
+	<tr>
+		<th>[% row.column_label('name') %]</th>
+		<td>[% row.name %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('email') %]</th>
+		<td>[% row.email %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('gender') %]</th>
+		<td>[% row.cd2str('gender') %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('birthday') %]</th>
+		<td>[% row.birthday.strftime('%Y/%m/%d') %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('tel') %]</th>
+		<td>[% row.tel %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('hobbies') %]</th>
+		<td>[% row.cd2str('hobbies', {join => "\n"}) %]</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('money') %]</th>
+		<td>[% row.money | commify %]円</td>
+	</tr>
+</table>

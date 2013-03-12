@@ -1,0 +1,36 @@
+[%- WRAPPER '/flapp_developer_support/_layout.ft' title='CRUD Exmaple > new' -%]
+<div id="content">
+	<form method="post" action="[% c.uri_for(c.path) %]">
+		[%- FILLINFORM c.req.params -%]
+		[%- INCLUDE '_form.ft' -%]
+		[%- END -%]
+		<br />
+		<a href="[% c.uri_for(c.controller.PATH) %]">戻る</a>
+		<input type="submit" name=".confirm" value="次へ">
+		<input type="hidden" name=".csrf_token" value="[% c.csrf_token %]" />
+	</form>
+</div>
+
+[%- IF c.debug -%]
+<script>
+document.onmousedown = function(e){
+	if((e || event).shiftKey){
+		var f = document.forms[0]
+		f.name.value = '名前'
+		f.email1.value = 'test'
+		f.email2.value = 'example.com'
+		f.gender.value = '1'
+		f.birthday1.value = '2012'
+		f.birthday2.value = '05'
+		f.birthday3.value = '16'
+		f.tel1.value = '03'
+		f.tel2.value = '1111'
+		f.tel3.value = '2222'
+		f.money.value = 10000
+		f.hobbies[0].checked = f.hobbies[1].checked = f.hobbies[2].checked = true
+	}
+}
+</script>
+[%- END -%]
+
+[%- END -%]

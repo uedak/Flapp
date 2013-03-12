@@ -1,0 +1,3 @@
+[%- FOREACH x IN [1 .. 2] -%]
+[%- INCLUDE 'bar.ft' -%]
+[%- END -%]

@@ -1,0 +1,5 @@
+[%- WRAPPER '_layout.ft' h1=h1 #test -%]
+<h2>[% h2 %]</h2>
+[%- CONTENT #test -%]
+<a>pagetop</a>
+[%- END -%]

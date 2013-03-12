@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="[% c.ua.content_type %]">
+<title>[% "${title} - Flapp Developer Support" %]</title>
+<link rel="stylesheet" type="text/css" href="[% c.static_root %]/project/css/flapp_developer_support.css" media="all">
+[% IF head_block %][% PROCESS head_block %][% END %]
+</head>
+<body>
+<div id="wrapper">
+	<div id="header">
+		<h1>[% title %]</h1>
+		<span>- Flapp Developer Support
+		<a href="[% c.uri_for('/flapp_developer_support/') %]">&gt;&gt; TOP</a>
+		</span>
+	</div>
+	[%- IF c.flash('notice') -%]
+	<div id="flash_notice">[% c.flash('notice') %]</div>
+	[%- END -%]
+	[%- IF c.flash('error') -%]
+	<div id="flash_error">[% c.flash('error') %]</div>
+	[%- END -%]
+	[%- CONTENT -%]
+	<div class="pagetop last"><a href="#">PAGE TOP</a></div>
+	<div id="footer"></div>
+</div>
+</body>
+</html>

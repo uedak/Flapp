@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="[% c.ua.content_type %]">
+<title>[% "Select Member - Flapp Developer Support" %]</title>
+<link rel="stylesheet" type="text/css" href="[% c.static_root %]/project/css/flapp_developer_support.css" media="all">
+</head>
+<body>
+<style type="text/css">
+th, td{ padding: 2px; }
+.odd{ background:#dff; }
+</style>
+<div id="content">
+	[% SET s = c.project.schema.ExampleMember %]
+	[% pager.total_entries %]件中、[% pager.first %]～[% pager.last %]件目
+	[% IF (p = pager.previous_page) %]<a href="[% c.uri_for(c.path, {page => p}) %]">前へ</a>[% END %]
+	[% IF (p = pager.next_page) %]<a href="[% c.uri_for(c.path, {page => p}) %]">次へ</a>[% END %]
+	<table border>
+		<tr>
+			<th>選択</th>
+			<th>[% s.column_label('name') %]</th>
+			<th>[% s.column_label('email') %]</th>
+			<th>[% s.column_label('gender') %]</th>
+			<th>[% s.column_label('birthday') %]</th>
+			<th>[% s.column_label('tel') %]</th>
+		</tr>
+	[%- FOREACH r IN rows -%]
+		<tr class="[% loop.parity %]">
+			<td><input id="[% r.id %]" class="select_member" type="button" value="選択"></td>
+			<td>[% r.name %]</td>
+			<td>[% r.email %]</td>
+			<td>[% r.cd2str('gender') %]</td>
+			<td>[% r.birthday %]</td>
+			<td>[% r.tel %]</td>
+		</tr>
+	[%- END -%]
+	</table></div>
+</body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	var sel = window.opener.selected_member_ids()
+	$('.select_member').each(function(){
+		if(this.disabled = sel[this.id]) return
+		$(this).click(function(){
+			window.opener.append_member(this.id, $(this).parent().next().text())
+			window.close()
+		})
+	})
+})
+</script>
+</html>

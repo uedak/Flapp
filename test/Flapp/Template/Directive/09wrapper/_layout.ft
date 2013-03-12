@@ -1,0 +1,7 @@
+<div id="header">
+<h1>[% h1 %]</h1>
+</div>
+[%- CONTENT #test -%]
+<div id="footer">
+FOOTER
+</div>

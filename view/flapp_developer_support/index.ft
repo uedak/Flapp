@@ -1,0 +1,10 @@
+[%- WRAPPER '_layout.ft' title='TOP' -%]
+<div id="content">
+	<ul>
+		<li><a href="[% c.uri_for('webgrep') %]">WEB GREP</a></li>
+		<li><a href="[% c.uri_for('gvmon') %]">Global Variables Monitor</a></li>
+		<li><a href="[% c.uri_for('crud_example/') %]">CRUD Example</a></li>
+		<li><a href="[% c.uri_for('crud_example2/') %]">CRUD Example (with relationship)</a></li>
+	</ul>
+</div>
+[%- END -%]

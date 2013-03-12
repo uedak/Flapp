@@ -1,0 +1,13 @@
+[%- WRAPPER '/flapp_developer_support/_layout.ft' title='CRUD Exmaple > edit' -%]
+<div id="content">
+	<form method="post" action="[% c.uri_for(c.path) %]">
+		[%- FILLINFORM c.req.params -%]
+		[%- INCLUDE '_form.ft' -%]
+		[%- END -%]
+		<br />
+		<a href="[% c.uri_for(c.controller.PATH) %]">戻る</a>
+		<input type="submit" name=".confirm" value="次へ">
+		<input type="hidden" name=".csrf_token" value="[% c.csrf_token %]" />
+	</form>
+</div>
+[%- END -%]

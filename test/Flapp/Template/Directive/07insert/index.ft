@@ -1,0 +1,3 @@
+[%- INSERT '_header.ft' #test -%]
+INDEX
+[%- INSERT './_footer.ft' #test -%]

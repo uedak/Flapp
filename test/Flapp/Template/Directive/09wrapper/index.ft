@@ -1,0 +1,3 @@
+[%- WRAPPER '_layout.ft' h1='(TITLE)' #test -%]
+INDEX
+[%- END -%]

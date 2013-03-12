@@ -1,0 +1,123 @@
+<style type="text/css">.error{ color:red; }</style>
+
+[%- IF !row.errors.is_empty -%]
+<ul class="error">
+	[%- FOREACH m IN row.errors.messages -%]
+	<li>[% m %]</li>
+	[%- END -%]
+</ul>
+[%- END -%]
+
+[%- BLOCK errors -%]
+	[%- FOREACH e IN e.get(col) -%]
+	<p class="error">[% e.msg %]</p>
+	[%- END -%]
+[%- END -%]
+
+[%- BLOCK entry_member -%]
+	[%- FILLINFORM (f || {}) -%]
+	<tr name="entry_members" class="multiple">
+		<td>[% r.member.name %]</td>
+		<td>
+			<select name="priv_cd">
+				<option value=""></option>
+			[%- FOREACH e IN row.ExampleEntryMember.column_enum('priv_cd') -%]
+				<option value="[% e[0] %]">[% e[1] %]</option>
+			[%- END -%]
+			</select>
+			[% PROCESS errors e=e col='priv_cd' %]
+		</td>
+		<td>
+			<input class="remove_member" type="button" value="削除" />
+			<input class="member_id" type="hidden" name="member_id" />
+		</td>
+	</tr>
+	[%- END -%]
+[%- END -%]
+
+<table border>
+	<tr>
+		<th>[% row.column_label('title') %]</th>
+		<td>
+			<input name="title" />
+			[% PROCESS errors e=row.errors col='title' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('category_id') %]</th>
+		<td>
+			<select id="category_id" name="category_id">
+				<option value=""></option>
+			[%- FOREACH r IN row.ExampleCategory.search([], {order_by => 'sort_no'}) -%]
+				<option value="[% r.id %]">[% r.name %]</option>
+			[%- END -%]
+			</select><br />
+			<input id="new_category_name" name="new_category_name">
+			[% PROCESS errors e=row.errors col='category' %]
+		</td>
+	</tr>
+	<tr>
+		<th>
+			[% row.relation_label('entry_members') %]<br />
+			<input id="select_member" type="button" value="追加">
+		</th>
+		<td>
+			<table border id="members">
+				<tr>
+					<th>名前</th>
+					<th>権限</th>
+				</tr>
+			[%- FOREACH r IN row.entry_members -%]
+			[% PROCESS entry_member r=r f=c.req.params.entry_members[loop.index] e=row.errors.get('entry_members', loop.index) %]
+			[%- END -%]
+			</table>
+			[% PROCESS errors e=row.errors col='entry_members' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.relation_label('content') %]</th>
+		<td>
+			<textarea name="content[text]"></textarea>
+			[% PROCESS errors e=row.content.errors col='text' %]
+		</td>
+	</tr>
+</table>
+<table id="new_member" class="template" style="display:none;">[% PROCESS entry_member %]</table>
+<input type="hidden" name="lock_version" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	window.selected_member_ids = function(){
+		var ids = {}
+		$('#members input.member_id').each(function(){ ids[this.value] = 1 })
+		return ids
+	}
+	window.append_member = function(id, name){
+		var $tr = $('#new_member tr:first').clone(true)
+		$('td:first', $tr).text(name)
+		$('input.member_id', $tr).val(id)
+		$('#members').append($tr)
+	}
+	$('.template').appendTo('body') //out of form
+	$('#category_id').change(function(){
+		$('#new_category_name').attr('disabled', this.value != '')
+	}).change()
+	$('#select_member').click(function(){
+		window.open(
+			'[% c.uri_for("${c.controller.PATH}select_member") %]',
+			'_select_member',
+			'width=480,height=300'
+		).focus()
+	})
+	$('.remove_member').click(function(){ $(this).parents('tr:first').remove() })
+	$('form').submit(function(){
+		$('form .multiple').each(function(i){
+			var n = $(this).attr('name')
+			$(':input', this).each(function(){
+				if(!this._name) this._name = this.name
+				this.name = n + '[' + i + '][' + this._name + ']'
+			})
+		})
+	})
+})
+</script>

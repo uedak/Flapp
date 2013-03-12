@@ -1,0 +1,31 @@
+From: =?ISO-2022-JP?B?GyRCI0YjciNvI20bKEI=?= <from@te.st>
+MIME-Version: 1.0
+Subject: =?ISO-2022-JP?B?GyRCI1MjdSNiI2ojZSNjI3QhPSExIUIhXSFBIXEhciJMGyhC?=
+To: =?ISO-2022-JP?B?GyRCI1QjTxsoQg==?= <>
+Content-Type: multipart/mixed; boundary="----=_NextPart_0.0"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_0.0
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
+
+Ｈｅｌｌｏ　Ｗｏｒｌｄ！
+―￣‖−〜¢£¬
+
+
+------=_NextPart_0.0
+Content-Type: image/gif
+Content-Disposition: attachment; filename="test2.gif"
+Content-Transfer-Encoding: base64
+
+R0lGODlhAQABAJEAAAAAAP///////wAAACH5BAUUAAIALAAAAAABAAEAAAICVAEAOw==
+
+------=_NextPart_0.0
+Content-Type: text/plain
+Content-Disposition: attachment; filename="test2.txt"
+Content-Transfer-Encoding: base64
+
+44GC44GE44GG44GI44GK
+
+------=_NextPart_0.0--

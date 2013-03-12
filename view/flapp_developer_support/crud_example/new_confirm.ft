@@ -1,0 +1,11 @@
+[%- WRAPPER '/flapp_developer_support/_layout.ft' title='CRUD Exmaple > new_confirm' -%]
+<div id="content">
+	<form method="post" action="[% c.uri_for(c.path) %]">
+		[%- INCLUDE '_confirm.ft' -%]
+		<br />
+		<a href="[% c.uri_for('new', {'.back' => 1}) %]">戻る</a>
+		<input type="submit" name=".create" value="登録">
+		<input type="hidden" name=".csrf_token" value="[% c.csrf_token %]" />
+	</form>
+</div>
+[%- END -%]

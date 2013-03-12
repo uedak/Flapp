@@ -1,0 +1,79 @@
+<style type="text/css">.error{ color:red; }</style>
+
+[%- IF !row.errors.is_empty -%]
+<ul class="error">
+	[%- FOREACH m IN row.errors.messages -%]
+	<li>[% m %]</li>
+	[%- END -%]
+</ul>
+[%- END -%]
+
+[%- BLOCK errors -%]
+	[%- FOREACH e IN row.errors.get(col) -%]
+	<p class="error">[% e.msg %]</p>
+	[%- END -%]
+[%- END -%]
+
+<table border>
+	<tr>
+		<th>[% row.column_label('name') %]</th>
+		<td>
+			<input name="name" />
+			[% PROCESS errors col='name' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('email') %]</th>
+		<td>
+			<input name="email1" />@<input name="email2" />
+			[% PROCESS errors col='email' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('gender') %]</th>
+		<td>
+			<select name="gender">
+				<option value=""></option>
+				[%- FOREACH e IN row.column_enum('gender') -%]
+				<option value="[% e[0] %]">[% e[1] %]</option>
+				[%- END -%]
+			</select>
+			[% PROCESS errors col='gender' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('birthday') %]</th>
+		<td>
+			<input name="birthday1" size="4" /> /
+			<input name="birthday2" size="2" /> /
+			<input name="birthday3" size="2" />
+			[% PROCESS errors col='birthday' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('tel') %]</th>
+		<td>
+			<input name="tel1" size="6" /> -
+			<input name="tel2" size="5" /> -
+			<input name="tel3" size="4" />
+			[% PROCESS errors col='tel' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('hobbies') %]</th>
+		<td>
+			[%- FOREACH e IN row.column_enum('hobbies') -%]
+			<label><input type="checkbox" name="hobbies" value="[% e[0] %]">[% e[1] %]</label><br />
+			[%- END -%]
+			[% PROCESS errors col='hobbies' %]
+		</td>
+	</tr>
+	<tr>
+		<th>[% row.column_label('money') %]</th>
+		<td>
+			<input name="money" />円
+			[% PROCESS errors col='money' %]
+		</td>
+	</tr>
+</table>
+<input type="hidden" name="lock_version" />

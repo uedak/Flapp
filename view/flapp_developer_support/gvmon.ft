@@ -1,0 +1,28 @@
+[%- WRAPPER '_layout.ft' title='Global Variables Monitor' -%]
+<div id="content">
+	<a href="[% c.uri_for(c.action) %]">Flapp::G</a>
+	[%- SET q = [] -%]
+	[%- FOREACH k IN keys -%]
+	[%- SET push(@{q}, k) -%]
+	&gt; <a href="[% c.uri_for(c.action, {k => q}) %]">[% k %]</a>
+	[%- END -%]
+
+	<table border>
+		[%- FOREACH k IN [sort(keys(%{g}))] -%]
+		<tr>
+			<th align="left">[% k %]</th>
+			<td>
+				[%- SET v = g[k] -%]
+				[%- IF ref(v) =~ /HASH/ -%]
+					<a href="[% c.uri_for(c.action, {k => [@{keys}, k]}) %]">[% int(keys(%{v})) %]</a>
+				[%- ELSIF ref(v) =~ /ARRAY/ -%]
+					[% c.dump(v) %]
+				[%- ELSE -%]
+					[% v %]
+				[%- END -%]
+			</td>
+		</tr>
+		[%- END -%]
+	</table>
+</div>
+[%- END -%]
