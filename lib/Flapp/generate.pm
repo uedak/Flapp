@@ -14,7 +14,7 @@ sub{
     find({
         no_chdir => 1,
         wanted => sub{
-            return if m%/\.svn(/|\z)%;
+            return if /\/\./; #.svn or .gitkeep
             (my $rel = substr($_, $len)) =~ s%^/%%;
             return if $ig{$rel} && ($ig = qr/^\Q$rel\E/) || $ig && $rel =~ $ig;
             $rel =~ s/\Q$from\E/$to/g;

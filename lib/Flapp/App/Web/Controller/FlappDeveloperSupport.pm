@@ -32,7 +32,7 @@ sub webgrep :Action {
         $c->stash(fetch => my $f = {});
         $f->{p} = $p->{-r} ? $p->{-p} : quotemeta($p->{-p});
         $f->{p} = $p->{-i} ? qr/($f->{p})/i : qr/($f->{p})/;
-        $f->{x} = {map{ $_ => 1 } ('svn', @{$p->{-x}})};
+        $f->{x} = {map{ $_ => 1 } @{$p->{-x}}};
         $f->{n} = $p->{-n} || 0;
         $c->OS->open($f->{H},
             "find %path -type d -name '.*' -prune -o -type f -print |", $p->{-d}) || die $!;
