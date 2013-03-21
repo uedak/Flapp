@@ -9,7 +9,7 @@ sub _is_valid {
         ->errors->is_empty;
 }
 
-sub _params2row { #U/Iとデータの差異を吸収
+sub _set_columns { #U/Iとデータの差異を吸収
     my($self, $p, $row) = @_;
     my %d = %$p; #don't modify params
     $d{category_id} ||= undef;
@@ -21,12 +21,11 @@ sub _params2row { #U/Iとデータの差異を吸収
     $self;
 }
 
-sub _row2params { #データとU/Iの差異を吸収
+sub _set_params { #データとU/Iの差異を吸収
     my($self, $row, $p) = @_;
     %$p = %{$row->get_columns({entry_members => {}, content => {}})};
     my $cat = $row->category;
     $p->{new_category_name} = $cat->name if $cat && !$cat->in_storage;
-    $row->members; #prefetch by many_to_many
     $self;
 }
 
@@ -59,15 +58,15 @@ sub edit :Action(id) {
     my $p = $c->inflate_params($c->req->params);
     
     if($c->submit_by('.confirm')){
-        if($self->_params2row($p => $row)->_is_valid($row)){
-            $c->session->set($self->PATH => $p);
+        if($self->_set_columns($p => $row)->_is_valid($row)){
+            $c->session->set($self->PATH, $p);
             return $c->redirect_for('../edit_confirm/'.$row->id);
         }
     }elsif($p->{'.back'} && (my $p = $c->session->get($self->PATH))){
-        $self->_params2row($p => $row);
+        $self->_set_columns($p => $row)->_is_valid($row);
     }
     
-    $self->_row2params($row => $c->req->params); #for fillinform
+    $self->_set_params($row => $c->req->params); #for fillinform
     $c->stash(row => $row);
 }
 
@@ -76,8 +75,8 @@ sub edit_confirm :Action(id) {
     my $row = $self->_schema->find($c->args->{id}) || return $c->http_error(404);
     my $p = $c->session->get($self->PATH);
     
-    if(!$p || !$self->_params2row($p => $row)->_is_valid($row)){
-        return $c->redirect_for('../edit/'.$row->id);
+    if(!$p || !$self->_set_columns($p => $row)->_is_valid($row)){
+        return $c->redirect_for('../edit/'.$row->id, {'.back' => 1});
     }elsif($c->submit_by('.update')){
         $self->_save($row);
         $c->session->remove($self->PATH);
@@ -106,15 +105,15 @@ sub new :Action {
     my $p = $c->inflate_params($c->req->params);
     
     if($c->submit_by('.confirm')){
-        if($self->_params2row($p => $row)->_is_valid($row)){
-            $c->session->set($self->PATH => $p);
+        if($self->_set_columns($p => $row)->_is_valid($row)){
+            $c->session->set($self->PATH, $p);
             return $c->redirect_for('new_confirm');
         }
     }elsif($p->{'.back'} && (my $p = $c->session->get($self->PATH))){
-        $self->_params2row($p => $row);
+        $self->_set_columns($p => $row)->_is_valid($row);
     }
     
-    $self->_row2params($row => $c->req->params); #for fillinform
+    $self->_set_params($row => $c->req->params); #for fillinform
     $c->stash(row => $row);
 }
 
@@ -123,8 +122,8 @@ sub new_confirm :Action {
     my $row = $self->_schema->new;
     my $p = $c->session->get($self->PATH);
     
-    if(!$p || !$self->_params2row($p => $row)->_is_valid($row)){
-        return $c->redirect_for('new');
+    if(!$p || !$self->_set_columns($p => $row)->_is_valid($row)){
+        return $c->redirect_for('new', {'.back' => 1});
     }elsif($c->submit_by('.create')){
         $self->_save($row);
         $c->session->remove($self->PATH);

@@ -46,9 +46,15 @@ sub host { shift->master_dsn->[0] =~ /host=([^\t\n\r ;]+)/ && $1 || 'localhost' 
 
 sub inflate_colon_sv { [$_[1] =~ /([^:]+)/g] }
 
-sub inflate_date { shift->project->Date->parse(shift) }
+sub inflate_date {
+    my $d = shift->project->Date;
+    $d->parse($_[0]) || defined $_[0] && $_[0] ne '' && $d->new($_[0]) || undef;
+}
 
-sub inflate_time { shift->project->Time->parse(shift) }
+sub inflate_time {
+    my $t = shift->project->Time;
+    $t->parse($_[0]) || defined $_[0] && $_[0] ne '' && $t->new($_[0]) || undef;
+}
 
 sub interpolate_sql {
     my($self, $sr, $xr) = @_;
