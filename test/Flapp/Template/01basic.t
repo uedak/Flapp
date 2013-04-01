@@ -172,6 +172,31 @@ my %opt = (context => MyProject->app('MyWebApp')->new({}), auto_filter => [qw/ht
 (.+\n)+ at \[% foo\.bar \(\? 1\)\n/;
     ${tied *STDERR} = '';
     
+    
+    
+    $ft = $p->open(\'[% foo[bar] %]');
+    is $ft->init({stash => {foo => {}}, %opt})->render, '';
+    is ${tied *STDERR}, '';
+    
+    $ft = $p->open(\'[% foo[bar] %]');
+    is $ft->init({stash => {foo => []}, %opt})->render, '';
+    is ${tied *STDERR}, '';
+    
+    $ft = $wp->open(\'[% foo[bar] %]');
+    is $ft->init({stash => {foo => {}}, %opt})->render, '';
+    like ${tied *STDERR}, qr/^Use of undefined value: "bar"
+( at .+\n)+Use of undefined value: "foo\[\]"
+( at .+\n)+\z/;
+    ${tied *STDERR} = '';
+    
+    $ft = $wp->open(\'[% foo[bar] %]');
+    is $ft->init({stash => {foo => []}, %opt})->render, '';
+    like ${tied *STDERR}, qr/^Use of undefined value: "bar"
+( at .+\n)+Use of undefined value: "foo\[\]"
+( at .+\n)+\z/;
+    ${tied *STDERR} = '';
+
+    
     untie *STDERR;
 }
 

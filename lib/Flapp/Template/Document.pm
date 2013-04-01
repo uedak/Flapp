@@ -105,7 +105,7 @@ sub var :lvalue {
         }elsif($token->[0] eq '['){
             $v = $self->_var_not_as($i, 'HASH or ARRAY')
                 if !($hr = UNIVERSAL::isa($v, 'HASH')) && !UNIVERSAL::isa($v, 'ARRAY');
-            $i .= "[$k]" if defined $i;
+            $i .= '['.(defined $k ? $k : '').']' if defined $i;
         }else{
             die $self->_dump_($token);
         }
@@ -114,6 +114,7 @@ sub var :lvalue {
             $hr ? ($set ? $v->{$k} ||= {} : $v->{$k}) :
             ($set ? $v->[$k] ||= {} : $v->[$k]);
     }
+    no warnings 'uninitialized';
     if(!$set && defined $i && $self->{warnings}){
         $v = $v ? ($ma ? $v->$k(@$ma) : $hr ? $v->{$k} : $v->[$k]) : undef;
         warn qq{Use of undefined value: "$i"} if !defined $v;
