@@ -4,9 +4,9 @@ sub{
     my($self, $cfg) = @_;
     $cfg->{DB} = {
         Default => {
-            allow_from => [qw/%/],
+            allow_from => [qw/localhost %/],
             dsn => [
-                ['dbi:mysql:MyProject;host=127.0.0.1', 'root', '', {}],
+                ['dbi:mysql:MyProject;host=localhost', 'root', '', {}],
             ],
         },
     };

@@ -1,5 +1,10 @@
 package Flapp::App::Web::Controller::FlappDeveloperSupport::CrudExample;
 use Flapp qw/-b Flapp::App::Web::Controller -m -s -w/;
+use constant SPLIT_INPUTS => [
+    [qw/email    @ 2/],
+    [qw/birthday - 3/],
+    [qw/tel      - 3/],
+];
 
 sub _auto {
     my($self, $c) = @_;
@@ -37,26 +42,23 @@ sub _auto {
     1;
 }
 
-use constant SPLIT_INPUTS => [
-    [qw/email    @ 2/],
-    [qw/birthday - 3/],
-    [qw/tel      - 3/],
-];
+sub _is_valid {
+    my($self, $row) = @_;
+    $row->is_valid;
+}
 
-sub _params2row { #U/Iとデータの差異を吸収
+sub _set_columns { #U/Iとデータの差異を吸収
     my($self, $p, $row) = @_;
     my %d = %$p; #don't modify params
     $self->_join_($p => \%d, @{$self->SPLIT_INPUTS});
     $d{hobbies} = [$p->get_all('hobbies')];
     
-    $d{$_} && $self->Util->tr(\($d{$_}), 'asc_z2h', 1) for qw/
-        email birthday tel money
-    /;
+    $d{$_} && $self->Util->tr(\($d{$_}), 'asc_z2h', 1) for qw/email birthday tel money/;
     $row->set_columns(\%d);
     $self;
 }
 
-sub _row2params { #データとU/Iの差異を吸収
+sub _set_params { #データとU/Iの差異を吸収
     my($self, $row, $p) = @_;
     %$p = %{$row->get_columns};
     $self->_split_($p => $p, @{$self->SPLIT_INPUTS});
@@ -69,8 +71,7 @@ sub delete :Action(id){
     my($self, $c) = @_;
     my $row = $self->_schema->find($c->args->{id}) || return $c->http_error(404);
     $row->txn_do(sub{
-        $row->entry_members([])
-            ->save_related('entry_members', {-d => 1})
+        $row->entry_members([])->save_related(entry_members => {-d => 1})
             ->delete;
     });
     $c->flash(notice => '削除しました')->redirect_for('../');
@@ -82,15 +83,15 @@ sub edit :Action(id) {
     my $p = $c->req->params;
     
     if($c->submit_by('.confirm')){
-        if($self->_params2row($p => $row) && $row->is_valid){
-            $c->session->set($self->PATH => $p);
+        if($self->_set_columns($p => $row)->_is_valid($row)){
+            $c->session->set($self->PATH, $p);
             return $c->redirect_for('../edit_confirm/'.$row->id);
         }
     }elsif($p->{'.back'} && (my $p = $c->session->get($self->PATH))){
-        $self->_params2row($p => $row);
+        $self->_set_columns($p => $row)->_is_valid($row);
     }
     
-    $self->_row2params($row => $c->req->params); #for fillinform
+    $self->_set_params($row => $p); #for fillinform
     $c->stash(row => $row);
 }
 
@@ -99,8 +100,8 @@ sub edit_confirm :Action(id) {
     my $row = $self->_schema->find($c->args->{id}) || return $c->http_error(404);
     my $p = $c->session->get($self->PATH);
     
-    if(!$p || !$self->_params2row($p => $row) || !$row->is_valid){
-        return $c->redirect_for('../edit/'.$row->id);
+    if(!$p || !$self->_set_columns($p => $row)->_is_valid($row)){
+        return $c->redirect_for('../edit/'.$row->id, {'.back' => 1});
     }elsif($c->submit_by('.update')){
         $row->save;
         $c->session->remove($self->PATH);
@@ -145,15 +146,15 @@ sub new :Action {
     my $p = $c->req->params;
     
     if($c->submit_by('.confirm')){
-        if($self->_params2row($p => $row) && $row->is_valid){
-            $c->session->set($self->PATH => $p);
+        if($self->_set_columns($p => $row)->_is_valid($row)){
+            $c->session->set($self->PATH, $p);
             return $c->redirect_for('new_confirm');
         }
     }elsif($p->{'.back'} && (my $p = $c->session->get($self->PATH))){
-        $self->_params2row($p => $row);
+        $self->_set_columns($p => $row)->_is_valid($row);
     }
     
-    $self->_row2params($row => $c->req->params); #for fillinform
+    $self->_set_params($row => $p); #for fillinform
     $c->stash(row => $row);
 }
 
@@ -162,8 +163,8 @@ sub new_confirm :Action {
     my $row = $self->_schema->new;
     my $p = $c->session->get($self->PATH);
     
-    if(!$p || !$self->_params2row($p => $row) || !$row->is_valid){
-        return $c->redirect_for('new');
+    if(!$p || !$self->_set_columns($p => $row)->_is_valid($row)){
+        return $c->redirect_for('new', {'.back' => 1});
     }elsif($c->submit_by('.create')){
         $row->save;
         $c->session->remove($self->PATH);
