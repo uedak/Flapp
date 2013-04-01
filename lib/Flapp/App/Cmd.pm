@@ -225,7 +225,7 @@ sub project_options { {trace => {
     exclude => qr/^Flapp::App/,
     warn => sub{
         (my $msg = shift) =~ s%^ at \(eval\)\(Flapp/App/Cmd\.pm [0-9]+\)\n%%mg;
-        $C->_log('?', $msg);
+        $C->warn_without_trace($msg);
     },
 }} }
 

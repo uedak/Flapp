@@ -29,7 +29,7 @@ sub{
         next if $f eq $ym && -d "$dir/$ym" && push @ym, $ym;
         next if substr($f, -4) ne '.log' || substr($f, 0, 10) eq $tdy;
         
-        if($f =~ /^([0-9]{4}-[0-9]{2}-[0-9]{2})_default_(.+)\.log\z/){
+        if($f =~ /^([0-9]{4}-[0-9]{2}-[0-9]{2})_default\@(.+)\.log\z/){
             my($ymd, $host) = ($1, $2);
             my $w = my $d = my $u = 0;
             $os->open(my $H, "$dir/$f") || die "$!($dir/$f)";
@@ -43,7 +43,9 @@ sub{
             if(!$w && !$d && !$u){
                 $c->log("$ymd $host OK.");
             }else{
-                $c->_log('?', "$ymd $host has some errors(warn: $w, die: $d, unknown: $u)");
+                $c->warn_without_trace(
+                    "$ymd $host has some errors(warn: $w, die: $d, unknown: $u)"
+                );
             }
         }
         
