@@ -74,7 +74,7 @@ use Flapp::Date;
     is $dt->epoch, -2147483649;
     is $dt, '1901-12-13T20:45:51+00:00';
     
-    $dt = Flapp->Time->parse('1000+0');
+    $dt = Flapp->Time->parse('10000101+0');
     is $dt->epoch, -30610224000;
     is $dt, '1000-01-01T00:00:00+00:00';
     
@@ -131,10 +131,13 @@ use Flapp::Date;
 { #parse
     local $Flapp::Date::LOCAL_TIME_ZONE_OFFSET = 0;
     is(Flapp->Time->parse(''), undef);
-    is(Flapp->Time->parse(2011), '2011-01-01T00:00:00+00:00');
-    is(Flapp->Time->parse(201102), '2011-02-01T00:00:00+00:00');
+    is(Flapp->Time->parse(2011), undef);
+    is(Flapp->Time->parse(201102), undef);
     is(Flapp->Time->parse('2011/2/3'), '2011-02-03T00:00:00+00:00');
+    is(Flapp->Time->parse('20110203'), '2011-02-03T00:00:00+00:00');
     is(Flapp->Time->parse('2011/2/3 4:5:6+9'), '2011-02-03T04:05:06+09:00');
+    is(Flapp->Time->parse('2011-2-3T04:05:06Z'), '2011-02-03T04:05:06+00:00');
+    is(Flapp->Time->parse('20110203040506'), '2011-02-03T04:05:06+00:00');
     is(Flapp->Time->parse(2011, 2, 3, 4, 5, 6), '2011-02-03T04:05:06+00:00');
 }
 

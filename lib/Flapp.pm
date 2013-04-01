@@ -1,6 +1,6 @@
 package Flapp;
 use Flapp::Core qw/-b Flapp::Object -m -r -s -w/;
-our $VERSION = '0.9005';
+our $VERSION = '0.9006';
 our($BEGIN, %G, $MAIL_SPOOL_DIR, $NOW, %OBJECT, $UTF8);
 
 sub import {

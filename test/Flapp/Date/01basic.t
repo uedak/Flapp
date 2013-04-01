@@ -160,9 +160,11 @@ use Flapp::Date;
 
 { #parse
     is(Flapp->Date->parse(''), undef);
-    is(Flapp->Date->parse(2011), '2011-01-01');
-    is(Flapp->Date->parse(201102), '2011-02-01');
+    is(Flapp->Date->parse(2011), undef);
+    is(Flapp->Date->parse(201102), undef);
+    is(Flapp->Date->parse(20110203), '2011-02-03');
     is(Flapp->Date->parse('2011/2/3'), '2011-02-03');
+    is(Flapp->Date->parse('2011-02-03'), '2011-02-03');
     is(Flapp->Date->parse(2011, 2, 3), '2011-02-03');
 }
 
