@@ -129,7 +129,7 @@ sub send {
             $H->print("Content-Type: $att->[1]\n");
             $H->print(qq{Content-Disposition: attachment; filename="$fn"\n});
             $H->print("Content-Transfer-Encoding: base64\n\n");
-            $self->OS->cat(my $buf, '<', $path) || die "$!($path)";
+            $self->OS->cat(my $buf, '<:raw', $path) || die "$!($path)";
             $H->print(MIME::Base64::encode_base64($buf));
         }
         $H->print("\n--$boundary--\n");
