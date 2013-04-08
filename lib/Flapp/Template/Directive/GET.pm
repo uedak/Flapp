@@ -11,11 +11,15 @@ sub begin {
         foreach(@{$dtv->{filter}}){
             my($m, $ar) = @$_;
             $r = $f->$m($r, !$ar ? () : $ar->($doc));
+            $$r = '' if ref $r eq 'SCALAR' && !defined $$r;
         }
     }
     my $af = $ft->{auto_filter};
     if($af && @$af && !$f->{raw}){
-        $r = $f->$_($r) for @$af;
+        foreach(@$af){
+            $r = $f->$_($r);
+            $$r = '' if ref $r eq 'SCALAR' && !defined $$r;
+        }
     }
     $ft->write(ref $r eq 'SCALAR' ? $$r : $r);
     $dtv->{id} + 1;

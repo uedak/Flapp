@@ -42,4 +42,5 @@ my %opt = (context => MyProject->app('MyWebApp')->new({}), auto_filter => [qw/ht
     is $ft->init({stash => {foo => undef, bar => '<b>'}, %opt})->render, '&lt;b&gt;';
     is $ft->init({stash => {foo => '', bar => '<b>'}, %opt})->render, '&lt;b&gt;';
     is $ft->init({stash => {foo => 0, bar => '<b>'}, %opt})->render, '0';
+    is $ft->init({stash => {}, %opt})->render, '';
 }
