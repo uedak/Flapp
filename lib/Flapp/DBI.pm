@@ -19,19 +19,25 @@ sub connect {
         RaiseError => 0,
         RootClass => $proj->DBI,
         private_flapp_dbh => my $pfd = [$self => $i],
-    }) || do{
+    });
+    my $onc;
+    if($dbh){
+        $proj->_weaken_($pfd->[0]);
+        $dbh->STORE(RaiseError => 1);
+        $onc = 1;
+    }else{
         die $DBI::errstr if !$i;
         warn "Trying master dbh because slave($self->{DBN}:$i) connection failed: $DBI::errstr";
-        $self->dbh(0)->clone;
+        $dbh = $self->dbh(0)->clone;
     };
-    $proj->_weaken_($pfd->[0]);
-    $dbh->STORE(RaiseError => 1);
     if(my $org = $self->{DBHS}[$i]){
         #warn "DBH reconnected ($self->{DBN}:$i)";
         $org->swap_inner_handle($dbh);
         return $org;
     }
     $self->{DBHS}[$i] = $dbh;
+    $proj->dbh_onconnect($dbh, $self->{DBN}, $i, $cfg) if $onc;
+    $dbh;
 }
 
 sub dbh {
@@ -148,7 +154,9 @@ sub master {
 
 sub no_txn_do {
     my($dbh, $cb) = (shift, shift);
-    local $dbh->FETCH('private_flapp_dbh')->[2] = 1;
+    my $pfd = $dbh->FETCH('private_flapp_dbh'); # [dbh_pool => dbh_id]
+    local $pfd->[0]{txl};
+    local $pfd->[2] = 1;
     $cb->(@_);
 }
 
