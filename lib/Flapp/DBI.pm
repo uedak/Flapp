@@ -18,7 +18,7 @@ sub connect {
         PrintError => 0,
         RaiseError => 0,
         RootClass => $proj->DBI,
-        private_flapp_dbh => my $pfd = [$self => $i],
+        private_flapp_dbh => my $pfd = [$self => $i], # [dbh_pool, dbh_id, no_txn]
     });
     my $ocd; #on_connect_do
     if($dbh){
@@ -122,7 +122,7 @@ sub auto_reconnect {
 
 sub auto_reconnect_do {
     my($dbh, $cb, $rescue) = (shift, shift, shift);
-    my $pfd = $dbh->FETCH('private_flapp_dbh'); # [dbh_pool => dbh_id]
+    my $pfd = $dbh->FETCH('private_flapp_dbh');
     $pfd->[0]{auto_reconnect} = 0; #try once
     my($wa, $warn, $die, @r, $r) = (wantarray, '');
     eval{
@@ -145,7 +145,7 @@ sub debug {
     $sql =~ s/^[\t\n\r ]+//;
     $sql =~ s/[\t\n\r ]+\z//;
     $sql = qq{"$sql"} if $sql;
-    my $pfd = $dbh->FETCH('private_flapp_dbh'); # [dbh_pool => dbh_id]
+    my $pfd = $dbh->FETCH('private_flapp_dbh');
     $pfd->[0]{project}->debug_with_trace("\$($pfd->[0]{DBN}:$pfd->[1])->$method($sql)",
         qr/^ at .+\(Flapp\/(DBI\.pm|Schema.+) [0-9]+\)\n/);
 }
@@ -154,13 +154,13 @@ sub flush_txn_log { $_[0]->FETCH('private_flapp_dbh')->[0]->_txl_flush }
 
 sub master {
     my $dbh = shift;
-    my $pfd = $dbh->FETCH('private_flapp_dbh'); # [dbh_pool => dbh_id]
+    my $pfd = $dbh->FETCH('private_flapp_dbh');
     ($pfd->[1] ? $pfd->[0]->dbh(0) : $dbh);
 }
 
 sub no_txn_do {
     my($dbh, $cb) = (shift, shift);
-    my $pfd = $dbh->FETCH('private_flapp_dbh'); # [dbh_pool => dbh_id]
+    my $pfd = $dbh->FETCH('private_flapp_dbh');
     local $pfd->[0]{txl};
     local $pfd->[2] = 1;
     $cb->(@_);
@@ -203,7 +203,7 @@ sub _define_method {
     my($self, $method, $cb, $is_txn, $prepare) = @_;
     my $code = sub{
         my $dbh = shift;
-        my $pfd = $dbh->FETCH('private_flapp_dbh'); # [dbh_pool => dbh_id]
+        my $pfd = $dbh->FETCH('private_flapp_dbh');
         return $pfd->[0]->dbh(0)->$method(@_) if $pfd->[1] && !$pfd->[2] && (
             $pfd->[0]{use_master} || (
                 $is_txn
@@ -266,7 +266,7 @@ __PACKAGE__->_define_method('rollback', sub{
     $rc;
 }, 1);
 
-require Encode if $Flapp::UTF8;
+require Encode if $Flapp::UTF8 && $Flapp::UTF8 > 1;
 my $MB = qr/[^\x00-\x7F]/;
 my $UTF8_ON = sub{ Encode::_utf8_on(my $s = $_[0]); $s };
 
@@ -274,13 +274,13 @@ __PACKAGE__->_define_method('selectall_arrayref', sub{
     my($dbh, $pfd) = (shift, shift);
     $dbh->debug('selectall_arrayref', @_) if $::ENV{FLAPP_DEBUG};
     my $rs = $dbh->SUPER::selectall_arrayref(@_);
-    return $rs if !$Flapp::UTF8 || !@$rs;
+    return $rs if !$Flapp::UTF8 || $Flapp::UTF8 <= 1 || !@$rs;
     
     if(ref $rs->[0] eq 'ARRAY'){
         foreach my $r (@$rs){
             Encode::_utf8_on($_) for @$r;
         }
-    }elsif($Flapp::UTF8 > 1 && (my @mb = grep{ /$MB/ } keys %{$rs->[0]})){
+    }elsif(my @mb = grep{ /$MB/ } keys %{$rs->[0]}){
         foreach my $r (@$rs){
             $r->{$UTF8_ON->($_)} = delete $r->{$_} for @mb;
         }
@@ -291,7 +291,7 @@ __PACKAGE__->_define_method('selectall_arrayref', sub{
 __PACKAGE__->_define_method('selectall_hashref', sub{
     my($dbh, $pfd) = (shift, shift);
     my $rs = $dbh->SUPER::selectall_hashref(@_);
-    return $rs if !$Flapp::UTF8 || !%$rs;
+    return $rs if !$Flapp::UTF8 || $Flapp::UTF8 <= 1 || !%$rs;
     
     my %mb;
     Flapp->Util->recursive_do({
@@ -302,7 +302,7 @@ __PACKAGE__->_define_method('selectall_hashref', sub{
             $next->($ref);
         },
         sort_keys => 0,
-    }, $rs) if $Flapp::UTF8 > 1;
+    }, $rs);
     $rs;
 });
 
@@ -314,7 +314,7 @@ __PACKAGE__->_define_method('selectcol_arrayref', sub{
 __PACKAGE__->_define_method('selectrow_array', sub{
     my($dbh, $pfd) = (shift, shift);
     $dbh->debug('selectrow_array', @_) if $::ENV{FLAPP_DEBUG};
-    return $dbh->SUPER::selectrow_array(@_) if !$Flapp::UTF8;
+    return $dbh->SUPER::selectrow_array(@_) if !$Flapp::UTF8 || $Flapp::UTF8 <= 1;
     map{ $UTF8_ON->($_) } $dbh->SUPER::selectrow_array(@_);
 });
 
@@ -322,7 +322,7 @@ __PACKAGE__->_define_method('selectrow_arrayref', sub{
     my($dbh, $pfd) = (shift, shift);
     $dbh->debug('selectrow_arrayref', @_) if $::ENV{FLAPP_DEBUG};
     my $r = $dbh->SUPER::selectrow_arrayref(@_) || return undef;
-    return $r if !$Flapp::UTF8;
+    return $r if !$Flapp::UTF8 || $Flapp::UTF8 <= 1;
     Encode::_utf8_on($_) for @$r;
     $r;
 });
@@ -352,29 +352,29 @@ sub execute {
     $rv;
 }
 
-if($Flapp::UTF8){
+if($Flapp::UTF8 && $Flapp::UTF8 > 1){
     *fetch = sub{
         my $r = shift->SUPER::fetch(@_) || return undef;
-        return $r if !$Flapp::UTF8;
+        return $r if !$Flapp::UTF8 || $Flapp::UTF8 <= 1;
         Encode::_utf8_on($_) for @$r;
         $r;
     };
     *fetchrow_arrayref = sub{
         my $r = shift->SUPER::fetchrow_arrayref(@_) || return undef;
-        return $r if !$Flapp::UTF8;
+        return $r if !$Flapp::UTF8 || $Flapp::UTF8 <= 1;
         Encode::_utf8_on($_) for @$r;
         $r;
     };
     *fetchrow_hashref = sub{
         my $sth = shift;
         my $r = $sth->SUPER::fetchrow_hashref(@_) || return undef;
-        return $r if !$Flapp::UTF8;
+        return $r if !$Flapp::UTF8 || $Flapp::UTF8 <= 1;
         my $mb = $sth->FETCH('private_flapp_name_mb');
         $sth->STORE(private_flapp_name_mb =>
             $mb = [grep{ /$MB/ } @{$sth->FETCH('NAME_lc')}]) if !$mb;
         $r->{$UTF8_ON->($_)} = delete $r->{$_} for @$mb;
         $r;
-    } if $Flapp::UTF8 > 1;
+    };
 }
 
 1;
