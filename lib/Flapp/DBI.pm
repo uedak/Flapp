@@ -20,11 +20,11 @@ sub connect {
         RootClass => $proj->DBI,
         private_flapp_dbh => my $pfd = [$self => $i],
     });
-    my $onc;
+    my $ocd; #on_connect_do
     if($dbh){
         $proj->_weaken_($pfd->[0]);
         $dbh->STORE(RaiseError => 1);
-        $onc = 1;
+        $ocd = $cfg->[4];
     }else{
         die $DBI::errstr if !$i;
         warn "Trying master dbh because slave($self->{DBN}:$i) connection failed: $DBI::errstr";
@@ -36,7 +36,13 @@ sub connect {
         return $org;
     }
     $self->{DBHS}[$i] = $dbh;
-    $proj->dbh_onconnect($dbh, $self->{DBN}, $i, $cfg) if $onc;
+    if($ocd){
+        if(ref $ocd eq 'CODE'){
+            $ocd->($dbh, $self->{DBN}, $i, $cfg);
+        }else{
+            $dbh->no_txn_do(sub{ $dbh->do($_) for @$ocd });
+        }
+    }
     $dbh;
 }
 

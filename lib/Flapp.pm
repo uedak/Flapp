@@ -1,6 +1,6 @@
 package Flapp;
 use Flapp::Core qw/-b Flapp::Object -m -r -s -w/;
-our $VERSION = '0.9008';
+our $VERSION = '0.9009';
 our($BEGIN, %G, $MAIL_SPOOL_DIR, $NOW, %OBJECT, $UTF8);
 
 sub import {
@@ -48,8 +48,6 @@ sub dbh {
     } if $BEGIN && !@_;
     $proj->DBI->dbh($proj, $db, shift || 0);
 }
-
-sub dbh_onconnect {}
 
 sub end {
     my $proj = shift;
