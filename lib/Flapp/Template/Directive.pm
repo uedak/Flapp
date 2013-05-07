@@ -18,20 +18,20 @@ sub end { $_[0]->{id} + 1 }
 
 sub head { $_[0]->{src} =~ /^[\t ]*([^\t\n\r \w]+)[\t\n\r ]*([^\t\n\r ]+)/ && "$1 $2 " }
 
-sub ln { $_[0]->{ln} ||= $_[0]->_ln($_[1], $_[0]->{id} - 1) }
+sub ln { $_[0]->{ln} || $_[0]->_ln($_[1], $_[0]->{id}) || '?' }
 
 sub _ln {
     my($self, $body, $id) = @_;
-    $id = $#$body if !defined $id;
-    my $ln = 0;
-    for(my $i = $id; $i >= 0; $i--){
-        my $r = $body->[$i];
-        my $dtv = ref($r) ne 'SCALAR' && $r;
-        $r = \($r->{src}) if $dtv;
+    my $ln = 1;
+    foreach(@$body){
+        my $r = $_;
+        if(ref($_) ne 'SCALAR'){
+            $_->{ln} = $ln;
+            $r = \($r->{src});
+        }
         $ln++ while $$r =~ /\r\n?|\n/g;
-        return $dtv->ln($body) + $ln if $dtv;
     }
-    $ln + 1;
+    defined $id && $id <= $#$body ? $body->[$id]{ln} : $ln
 }
 
 sub name {
