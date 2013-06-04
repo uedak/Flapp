@@ -347,7 +347,7 @@ sub execute {
             @_,
         );
     };
-    my $p = $sth->FETCH('private_flapp_txl_p');
+    my $p = $pool->{txl} && $sth->FETCH('private_flapp_txl_p');
     $pool->_txl_add($dbh, $p, @_) if $p;
     $rv;
 }
