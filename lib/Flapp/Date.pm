@@ -156,7 +156,7 @@ sub _mk_accessors {
 
 sub new { bless \(defined $_[1] ? "$_[1]" : ''), $_[0] }
 
-sub _ov_cmp { "$_[0]" cmp "$_[1]" }
+sub _ov_cmp { $_[2] ? "$_[1]" cmp "$_[0]" : "$_[0]" cmp "$_[1]" }
 
 sub _ov_minus {
     if(ref $_[1] && $_[1]->can('epoch')){
@@ -175,7 +175,7 @@ sub _ov_plus {
 
 sub _ov_ss {
     my($_a, $_b) = map{ ref($_) ? $_->epoch : $_ } @_;
-    $_a <=> $_b;
+    $_[2] ? $_b <=> $_a : $_a <=> $_b;
 }
 
 sub parse {
