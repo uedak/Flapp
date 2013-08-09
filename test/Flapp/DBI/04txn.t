@@ -64,6 +64,16 @@ eval{
         is_deeply $dbh->selectrow_arrayref('select count(*) from test'), [3];
         ${tied *STDERR} = '';
         
+        is $dbh->txn_do(sub{
+            $dbh->do('insert into test values(?, ?)', undef, 4, 'D');
+            $dbh->rollback;
+        }), 1;
+        like ${tied *STDERR}, qr/^-+\n\Q$(Default:0)->begin_work()\E/;
+        like ${tied *STDERR}, qr/\Q$(Default:0)->do("insert into test values('4', 'D')")\E/;
+        like ${tied *STDERR}, qr/\Q$(Default:0)->rollback()\E/;
+        is_deeply $dbh->selectrow_arrayref('select count(*) from test'), [3];
+        ${tied *STDERR} = '';
+        
         
         
         is $dbh->no_txn_do(sub{

@@ -179,9 +179,12 @@ sub txn_do {
     return $cb->(@_) if $dbh->master->FETCH('BegunWork');
     $dbh->begin_work;
     my $r = eval{ $cb->(@_) };
-    return $dbh->commit && $r if !(my $msg = $@);
-    $dbh->rollback;
-    die $msg;
+    if(my $msg = $@){
+        $dbh->rollback;
+        die $msg;
+    }
+    $dbh->commit if $dbh->master->FETCH('BegunWork');
+    return $r;
 }
 
 sub txn_log {
