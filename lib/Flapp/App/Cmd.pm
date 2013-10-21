@@ -2,6 +2,7 @@ package Flapp::App::Cmd;
 use Flapp qw/-b Flapp::App -m -r -s -w/;
 use constant OPTIONS => [qw/
     mail_from
+    mail_body_limit
     mailto_on_die
     mailto_on_success
     mailto_on_warn
@@ -84,12 +85,18 @@ sub end_log {
     seek $H, $r->{log_offset}, 0;
     my $reg = qr/^\[([*+#?!])\] [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} $PID\b/;
     $r->{mail_body} = '';
+    my $lim = $c->mail_body_limit;
+    $lim = 1024 * 100 if !defined $lim;
     while(my $ln = <$H>){
         $ln =~ $reg || next;
-        $r->{mail_body} .= $ln if $1 ne '+';
+        if($1 ne '+' && $lim > 0){
+            $r->{mail_body} .= $ln;
+            $lim -= length $ln;
+        }
         $r->{warn} ||= ($1 eq '?');
         $r->{die}  ||= ($1 eq '!');
     }
+    $r->{mail_body} .= "...(exceeds mail_body_limit)\n" if $lim < 0;
     my $cd = $r->{die} ? '!' : $r->{warn} ? '?' : '*';
     my $msg = $c->path.' END '.$CD{$cd}->[1];
     die $msg."\0" if $r->{die} && !$finalize;
