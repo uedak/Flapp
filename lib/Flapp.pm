@@ -110,7 +110,9 @@ sub tracer {
             last if $die && $sub eq '(eval)';
         }
         
-        (my $msg = $_[0]) =~ s/ at \Q$t[0]->[0]\E line \Q$t[0]->[1]\E\.\n\z/\n/;
+        my $msg = $_[0];
+        $proj->Util->utf8_on($msg) if $UTF8;
+        $msg =~ s/ at \Q$t[0]->[0]\E line \Q$t[0]->[1]\E\.\n\z/\n/;
         while(my $t = shift @t){
             next if(@t && $opt->{exclude} && $t->[2] =~ $opt->{exclude});
             $t->[0] =~ s%^\Q$_/\E%% && last for @::INC;
