@@ -111,7 +111,7 @@ sub tracer {
         }
         
         my $msg = $_[0];
-        $proj->Util->utf8_on($msg) if $UTF8;
+        eval{ $proj->Util->utf8_on($msg) } if $UTF8;
         $msg =~ s/ at \Q$t[0]->[0]\E line \Q$t[0]->[1]\E\.\n\z/\n/;
         while(my $t = shift @t){
             next if(@t && $opt->{exclude} && $t->[2] =~ $opt->{exclude});
