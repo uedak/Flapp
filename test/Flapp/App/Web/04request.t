@@ -48,7 +48,7 @@ my $ct = 'multipart/form-data; boundary=---------------------------5447217261477
 }
 
 { #Bad Content-Length
-    my $log = $proj->logger->path;
+    my $log = $proj->logger->open->path;
     $proj->OS->cat('', '>', $log) || die "$!($log)";
     
     my $root = $app->controller('Root');
@@ -149,5 +149,6 @@ my $ct = 'multipart/form-data; boundary=---------------------------5447217261477
     $proj->begin;
 }
 
+$proj->logger->close;
 $proj->OS->rm_rf($proj->config->log_dir);
 $proj->OS->rm_rf($proj->project_root.'/tmp/apps');

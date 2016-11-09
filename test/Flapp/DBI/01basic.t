@@ -175,6 +175,7 @@ delete from test
         $proj->OS->cat(my $buf, '<', $log->path);
         is $buf, '';
     }
+    $log->close;
     $proj->OS->rm_rf($proj->config->log_dir);
 };
 

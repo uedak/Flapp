@@ -45,6 +45,7 @@ eval{
 \t2:\t2\t[0-9\- :]+\t[0-9\- :]+\t1
 
 \z/;
+    $log->close;
     $proj->OS->rm_rf($proj->config->log_dir);
 };
 $proj->end;

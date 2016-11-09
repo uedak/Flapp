@@ -3,6 +3,12 @@ use Flapp qw/-b Flapp::Object -m -s -w/;
 use IO::Handle;
 our $DEBUG;
 
+sub close {
+    my $self = shift;
+    delete($self->{H})->close if $self->{H};
+    $self;
+}
+
 sub new {
     my $class = shift;
     my $proj = $class->project;
@@ -19,17 +25,22 @@ sub now {
     my $self = shift;
     my $now = $self->project->now;
     if($now->ymd ne $self->{ymd}){
-        $self->{H}->close if $self->{H};
+        $self->close;
         $self->{ymd} = $now->ymd;
-        my $path = $self->path;
-        if(!-f $path){
-            (my $dir = $path) =~ s%/[^/]+\z%% || die $path;
-            $self->OS->mkdir_p($dir) if !-d $dir;
-        }
-        $self->OS->open($self->{H}, '>>', $path) || die "$!($path)";
-        $self->{H}->autoflush;
     }
     $now;
+}
+
+sub open {
+    my $self = shift;
+    my $path = $self->path;
+    if(!-f $path){
+        (my $dir = $path) =~ s%/[^/]+\z%% || die $path;
+        $self->OS->mkdir_p($dir) if !-d $dir;
+    }
+    $self->OS->open($self->{H}, '>>', $path) || die "$!($path)";
+    $self->{H}->autoflush;
+    $self;
 }
 
 sub path { "$_[0]->{dir}/$_[0]->{ymd}_$_[0]->{suffix}.log" }
@@ -39,6 +50,7 @@ sub print {
     $self->project->debug_with_trace(
         join(",\n", map{ $self->dump($_) } @_)."\n >> ".$self->path
     ) if $DEBUG && $::ENV{FLAPP_DEBUG};
+    $self->open if !$self->{H};
     $self->{H}->print(@_);
 }
 
