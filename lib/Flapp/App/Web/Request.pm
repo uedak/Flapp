@@ -1,7 +1,7 @@
 package Flapp::App::Web::Request;
 use Flapp qw/-b Flapp::Object -i Plack::Request -m -r -s -w/;
 use File::Temp;
-use HTTP::Body;
+use HTTP::Entity::Parser::MultiPart;
 
 # Hash::MultiValue problems
 #
@@ -11,42 +11,33 @@ use HTTP::Body;
 #
 # So, use Flapp::App::Web::Request::MultiValueHash for compatibility.
 
-our $FILE_TMP_NEW = \&File::Temp::new;
-our $FILE_TMP_NEW_WITH_VALID_SUFFIX = sub{
-    my $i = 1;
-    while($i < $#_){
-        ($i += 2) && next if $_[$i] ne 'SUFFIX';
-        splice @_, $i, 2 if $_[$i + 1] !~ /^(\.[0-9A-Za-z]+)+\z/;
-        last;
-    }
-    $FILE_TMP_NEW->(@_);
-};
-our $HTTP_BODY_NEW = \&HTTP::Body::new;
-our $HTTP_BODY = sub{
-    my($sub, $self) = (shift, shift);
-    return $sub->($self, @_) if $self->env->{'flapp.request.http.body'};
-    
+sub DESTROY {
+    my $self = shift;
+    close($_->[0]) && unlink($_->[1]) for @{$self->{_uploads} || []};
+    $self->SUPER::DESTROY(@_);
+}
+
+our $TEMPFILE = \&File::Temp::tempfile;
+sub _parse_request_body {
+    my $self = shift;
     no warnings 'redefine';
-    local *File::Temp::new = $FILE_TMP_NEW_WITH_VALID_SUFFIX;
-    local *Hash::MultiValue::from_mixed = sub{ shift; $self->MultiValueHash->from_mixed(@_) };
     local *Hash::MultiValue::new = sub{ shift; $self->MultiValueHash->new(@_) };
-    local *HTTP::Body::new = sub{
-        my $body = $self->env->{'flapp.request.http.body'} = $HTTP_BODY_NEW->(@_);
-        $body->{tmpdir} = $self->c->upload_dir;
-        $body;
+    local *HTTP::Entity::Parser::MultiPart::tempfile = sub{
+        my @r = $TEMPFILE->(DIR => $self->c->upload_dir);
+        push @{$self->{_uploads} ||= []}, \@r;
+        @r;
     };
-    $sub->($self, @_);
-};
+    my $r = $self->SUPER::_parse_request_body(@_);
+    $self->env->{'plack.request.upload'} = $self->filter_input($self->env->{'plack.request.upload'});
+    $r;
+}
 
 sub body_parameters {
     my $self = shift;
-    $self->env->{'flapp.request.body'} ||= $self->filter_input(
-        $HTTP_BODY->(\&Plack::Request::body_parameters => $self, @_)
-    );
+    $self->env->{'plack.request.body'} ||=
+        $self->filter_input($self->MultiValueHash->new(@{$self->_body_parameters}));
 }
 *body_params = \&body_parameters;
-
-sub content { $HTTP_BODY->(\&Plack::Request::content => @_) }
 
 sub context { shift->{context} || die 'No context' }
 *c = \&context;
@@ -70,8 +61,7 @@ sub filter_input {
     $p;
 }
 
-use constant FINALIZE_KEYS =>
-    [map{ ("plack.request.$_", "flapp.request.$_") } qw/query body merged upload/];
+use constant FINALIZE_KEYS => [map{ "plack.request.$_" } qw/query body merged upload/];
 
 sub finalize {
     my $self = shift;
@@ -87,32 +77,21 @@ sub new {
 
 sub parameters {
     my $self = shift;
-    $self->env->{'flapp.request.merged'} ||= do{
-        no warnings 'redefine';
-        local *Hash::MultiValue::new = sub{ shift; $self->MultiValueHash->new(@_) };
-        $self->SUPER::parameters(@_);
-    };
+    $self->env->{'plack.request.merged'} ||= $self->MultiValueHash->new
+        ->merge_mixed(%{$self->query_params})
+        ->merge_mixed(%{$self->body_params});
 }
 *params = \&parameters;
 
 sub query_parameters {
     my $self = shift;
-    $self->env->{'flapp.request.query'} ||= $self->filter_input(do{
-        no warnings 'redefine';
-        local *Hash::MultiValue::new = sub{ shift; $self->MultiValueHash->new(@_) };
-        my $q = $self->SUPER::query_parameters(@_);
+    $self->env->{'plack.request.query'} ||= $self->filter_input(do{
+        my $q = $self->MultiValueHash->new(@{$self->_query_parameters});
         my($c, $s);
         ($s = $c->session)->state->load_sid_from_query($s, $q) if ($c = $self->c)->session_enabled;
         $q;
     });
 }
 *query_params = \&query_parameters;
-
-sub uploads {
-    my $self = shift;
-    $self->env->{'flapp.request.upload'} ||= $self->filter_input(
-        $HTTP_BODY->(\&Plack::Request::uploads => $self, @_)
-    );
-}
 
 1;

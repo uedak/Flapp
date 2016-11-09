@@ -197,8 +197,9 @@ sub log {
     my $body = '';
     if($req->content_length){
         eval{ $PSGI_REQ->body_parameters } if $PSGI_REQ; #read body if not yet,
-        $body = $PSGI_ENV->{'flapp.request.http.body'};
-        $body = $body && eval{ local $Flapp::UTF8; $class->dump($body->param) } || '?';
+        $body = $PSGI_ENV->{'plack.request.body_parameters'};
+        $body &&= $class->Request->MultiValueHash->new(@$body)->as_hashref;
+        $body = $body && eval{ local $Flapp::UTF8; $class->dump($body) } || '?';
         Encode::_utf8_on($body) if $Flapp::UTF8 && require Encode;
     }
     

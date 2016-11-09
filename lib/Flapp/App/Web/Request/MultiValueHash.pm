@@ -78,7 +78,7 @@ sub merge_mixed {
     my $self = shift;
     my $h = @_ == 1 && shift;
     
-    while(my($k, $v) = @_ ? splice @_, 0, 2 : each %$h){
+    while(my($k, $v) = $h ? each %$h : splice @_, 0, 2){
         foreach(ref $v eq 'ARRAY' ? @$v : $v){
             !exists $self->{$k} ? $self->{$k} = $_ :
             ref $self->{$k} ne 'ARRAY' ? $self->{$k} = [$self->{$k}, $_] :
