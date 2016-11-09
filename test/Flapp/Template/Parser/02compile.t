@@ -34,13 +34,13 @@ $p->{pragma} = '';
     is $res[1], q{$_[0]->var('xxx') =~ m{^\w+(??{ $_[0]->var('foo') })\w+\z}};
     
     ok(@res = $p->compile(\($src = q{foo = bar})));
-    is $res[1], q{$_[0]->var('foo', '=') = $_[0]->var('bar')};
+    is $res[1], q{$_[0]->val('foo') = $_[0]->var('bar')};
     
     ok(@res = $p->compile(\($src = q{foo = FOO = 1})));
-    is $res[1], q{$_[0]->var('foo', '=') = $_[0]->var('FOO', '=') = 1};
+    is $res[1], q{$_[0]->val('foo') = $_[0]->val('FOO') = 1};
     
     ok(@res = $p->compile(\($src = q{foo = {bar => baz, hoge, fuga}})));
-    is $res[1], q{$_[0]->var('foo', '=') = {bar => $_[0]->var('baz'), $_[0]->var('hoge'), $_[0]->var('fuga')}};
+    is $res[1], q{$_[0]->val('foo') = {bar => $_[0]->var('baz'), $_[0]->var('hoge'), $_[0]->var('fuga')}};
     
     ok(@res = $p->compile('/.+/'));
     is $res[1], '/.+/';
@@ -49,10 +49,10 @@ $p->{pragma} = '';
     is $res[1], ' /.+/ ';
     
     ok(@res = $p->compile('xxx =~ s/././g'));
-    is $res[1], q{$_[0]->var('xxx', '=') =~ s/././g};
+    is $res[1], q{$_[0]->val('xxx') =~ s/././g};
     
     ok(@res = $p->compile('xxx =~ s{.}{.}'));
-    is $res[1], q{$_[0]->var('xxx', '=') =~ s{.}{.}};
+    is $res[1], q{$_[0]->val('xxx') =~ s{.}{.}};
     
     ok(@res = $p->compile('(x || y).z'));
     is $res[1], q{$_[0]->var(sub{ $_[0]->var('x') || $_[0]->var('y') }, ['.', 'z'])};

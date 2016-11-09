@@ -217,7 +217,7 @@ _END_
     
     ok !eval{ $sp->open(\$src)->init->render };
     like $@, qr/^"y" was not declared in this scope
-(.+\n)+ at \[% "\${x}-\${y}-\${X}-\${Y}-\${loop.count}-\${i}" \(\? 9\)\E\n/;
+(.+\n)+ at \[% "\${x}-\${y}-\${X}-\${Y}-\${loop.count}-\${i}" \(\? 9\)\n/;
 }
 
 { #TRIM_INDENT

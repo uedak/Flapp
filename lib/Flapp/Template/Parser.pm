@@ -113,7 +113,7 @@ sub _compile_op {
         |=
     )([\t\n\r ]*)/gcx || return '';
     
-    ($2 eq '=' || $5 || $4 && $4 ne 'm') ? (substr($st->{sub}, -1) = ", '=')") :
+    ($2 eq '=' || $5 || $4 && $4 ne 'm') ? (substr($st->{sub}, $st->{sp} + 7, 3) = 'val') :
     $2 eq '=>' ? do{ $st->{sub} =~ s/\$_\[0\]->var\('(\-?[0-9A-Za-z_]+)'\)\z/$1/ } : 1 if $v;
     
     $st->{sub} .= $1.($2 eq '_' ? '.' : $2 eq '_=' ? '.=' : $2).$6;
@@ -177,6 +177,7 @@ sub _compile_var {
     my($self, $sr, $st, $n) = @_;
     my $d = substr($n, 0, 1) eq '$';
     
+    $st->{sp} = length($st->{sub});
     $st->{sub} .= '$_[0]->var('.($d ? "sub{ $n }" : "'$n'");
     while($$sr =~ /\G(?:\.([A-Za-z_][0-9A-Za-z_]*)(\()?|(\[))/gc){
         if($1){

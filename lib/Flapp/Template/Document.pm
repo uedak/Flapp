@@ -72,6 +72,8 @@ sub rel2abs {
 }
 
 my %A2Z = map{ $_ => 1 } 'A' .. 'Z';
+=head
+# perl 5.16: Can't return undef from lvalue subroutine
 sub var :lvalue {
     my($self, $k) = (shift, shift);
     my $set = @_ && $_[-1] eq '=' && pop;
@@ -121,6 +123,70 @@ sub var :lvalue {
         return $v;
     }
     $v ? ($ma ? $v->$k(@$ma) : $hr ? $v->{$k} : $v->[$k]) : undef;
+}
+=cut
+
+sub val :lvalue {
+    my($self, $k) = (shift, shift);
+    my $v = ref $k ? $k->($self) : $self->{substr($k, 0, 1) le 'Z' ? 'our' : 'my'};
+    $v->{$k} = $self->{stash}{$k} if !ref $k && !exists $v->{$k};
+    my($hr, $ma) = (1);
+    ($hr, $ma) = $self->_var($v, $k, 1, @_) if @_;
+    $ma ? $v->$k(@$ma) : $hr ? $v->{$k} : $v->[$k];
+}
+
+sub var {
+    my($self, $k) = (shift, shift);
+    my $v = ref $k ? $k->($self) :
+        exists $self->{my}{$k} ? $self->{my} :
+        exists $self->{our}{$k} ? $self->{our} :
+        exists $self->{stash}{$k} ? $self->{stash} :
+        $self->{strict} ? die qq{"$k" was not declared in this scope} :
+        undef;
+    $self->_var($v, $k, 0, @_);
+}
+
+sub _var {
+    my($self, $v, $k, $set) = @_;
+    $v = $set ? $v->{$k} ||= {} : $v->{$k} if @_ > 4 && !ref $k;
+    my $i = ($self->{strict} || $self->{warnings}) ? $k : undef;
+    my($hr, $ma) = (1);
+    no warnings 'numeric';
+    foreach my $token (@_[4..$#_]){
+        last if !$v;
+        $hr = $ma = undef;
+        $k = $k->($self) if ref ($k = $token->[1]);
+        if($token->[0] eq '.'){
+            if($ma = $token->[2] ||
+                (ref $v ? (ref $v)->can($k) : $A2Z{substr($v, 0, 1)} && $v->can($k)) && []
+            ){
+                $ma = $ma->($self) || die if ref($ma) eq 'CODE';
+                $i .= ".$k".(@$ma ? '(...)' : '()') if defined $i;
+            }else{
+                $v = $self->_var_not_as($i, 'HASH') if !($hr = UNIVERSAL::isa($v, 'HASH'));
+                $i .= ".$k" if defined $i;
+            }
+        }elsif($token->[0] eq '['){
+            $v = $self->_var_not_as($i, 'HASH or ARRAY')
+                if !($hr = UNIVERSAL::isa($v, 'HASH')) && !UNIVERSAL::isa($v, 'ARRAY');
+            $i .= '['.(defined $k ? $k : '').']' if defined $i;
+        }else{
+            die $self->_dump_($token);
+        }
+        last if $token == $_[-1];
+        $v &&= $ma ? $v->$k(@$ma) :
+            $hr ? ($set ? $v->{$k} ||= {} : $v->{$k}) :
+            ($set ? $v->[$k] ||= {} : $v->[$k]);
+    }
+    if($set){
+        ($_[1], $_[2]) = ($v, $k);
+        return ($hr, $ma);
+    }
+    no warnings 'uninitialized';
+    ($v ? ($ma ? $v->$k(@$ma) : $hr ? $v->{$k} : $v->[$k]) : undef) // do{
+        warn qq{Use of undefined value: "$i"} if defined $i && $self->{warnings};
+        undef;
+    };
 }
 
 sub _var_not_as {
