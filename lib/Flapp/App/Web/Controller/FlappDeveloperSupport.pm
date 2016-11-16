@@ -110,6 +110,7 @@ print $path;
 sub _webgrep_macth {
     my($self, $c, $f, $line) = @_;
     my($htm, $ofs) = ('', 0);
+    no warnings 'utf8';
     while($line->[1] =~ /$f->{p}/g){
         my $pos = pos $line->[1];
         $htm .= $c->html(substr($line->[1], $ofs, $pos - $ofs - length($1)));
