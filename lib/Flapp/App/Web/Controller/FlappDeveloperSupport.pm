@@ -65,6 +65,7 @@ sub _webgrep_exclude_exts {
             [swf  => 1],
             [ico  => 1],
             [gz   => 1],
+            [so   => 1],
             [log  => 1],
             [ses  => 1],
             [tsv  => 1],
