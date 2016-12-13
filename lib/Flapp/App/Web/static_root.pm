@@ -9,7 +9,7 @@ sub{
         my $rev = $cfg->{static_root_rev};
         if($rev =~ /\bgit\z/){
             $sr .= '_'.($c->project->_global_->{static_root_rev}{$_} ||= do{
-                my $log = $c->OS->qx('cd %path; %path log -n 1 --oneline', $_, $rev);
+                my $log = $c->OS->qx('cd %path; %path log -n 1 --oneline .', $_, $rev);
                 $log && $log =~ /^(\w+)\s/ ? $1 : $c->debug ? 1 : die $log
             }) for @{$c->static_roots};
         }elsif($rev){
