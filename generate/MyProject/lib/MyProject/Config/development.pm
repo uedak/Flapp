@@ -18,7 +18,6 @@ sub{
     $m->{spool_dir} = $self->project_root.'/tmp/mail';
     #$m->{sendmail} = '/usr/lib/sendmail';
     #$m->{smtp} = ['localhost'];
-    #$m->{return_path} = ?;
     
     $cfg;
 }
