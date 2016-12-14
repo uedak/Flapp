@@ -13,7 +13,12 @@ sub{
             ],
         },
     };
-    $cfg->{Mailer}{filter} = undef;
-    $cfg->{Mailer}{spool_dir} = $self->project_root.'/tmp/mail';
+    my $m = $cfg->{Mailer} ||= {};
+    $m->{filter} = undef;
+    $m->{spool_dir} = $self->project_root.'/tmp/mail';
+    #$m->{sendmail} = '/usr/lib/sendmail';
+    #$m->{smtp} = ['localhost'];
+    #$m->{return_path} = ?;
+    
     $cfg;
 }

@@ -10,6 +10,7 @@ use constant ADDR => {
     'Return-Path' => 0,
     'Reply-To'    => 0,
 };
+use constant SMTP => 'Flapp::Mailer::SMTP';
 
 sub attachment {
     my($self, $att) = @_;
@@ -148,15 +149,18 @@ sub sendmail_handle {
     my $self = shift;
     my $os = $self->OS;
     my $s = $self->sender;
+    die "Invalid address($s)" if !$os->is_eml($s);
     my $H;
     
     if(my $dir = $self->spool_dir){
-        die "Invalid address($s)" if !$os->is_eml($s);
         my $f = $self->spool_file($dir);
         $os->open($H, '>', $f) || die "$!($f)";
-    }else{
-        my $cmd = $self->config->sendmail;
+    }elsif(my $cmd = $self->config->{sendmail}){
         $os->open($H, '| %path -t -f %eml', $cmd, $s) || die "$!($cmd, $s)";
+    }elsif(my $rel = $self->config->{smtp}){
+        $H = $self->SMTP->open($rel, $self);
+    }else{
+        die 'No config';
     }
     
     $H;
@@ -176,5 +180,25 @@ sub spool_file {
     }
     $f;
 }
+
+package Flapp::Mailer::SMTP;
+use Flapp qw/-b Flapp::Object -s -w/;
+
+sub close {
+    my $smtp = $_[0]->[0];
+    $smtp->dataend && $smtp->quit || die $smtp->message;
+}
+
+sub open {
+    require Net::SMTP;
+    my($class, $rel, $m) = @_;
+    my $smtp = Net::SMTP->new(@$rel) || die 'Net::SMTP failed: '.$m->dump($rel);
+    $smtp->mail($m->sender) || die $smtp->message;
+    $smtp->recipient($m->recipient) || die $smtp->message;
+    $smtp->data || die $smtp->message;
+    $class->_new_([$smtp]);
+}
+
+sub print { shift->[0]->datasend(@_) }
 
 1;

@@ -14,8 +14,9 @@ sub{
             ],
         },
     };
-    $cfg->{Mailer}{filter} = undef;
-    $cfg->{Mailer}{spool_dir} = "$tmp/mail";
+    my $m = $cfg->{Mailer} ||= {};
+    $m->{filter} = undef;
+    $m->{spool_dir} = "$tmp/mail";
     
     $cfg->{log_dir} = "$tmp/log";
     
