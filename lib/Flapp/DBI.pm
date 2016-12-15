@@ -13,18 +13,18 @@ sub connect {
     my($self, $i) = @_;
     my $proj = $self->{project};
     my $cfg = $proj->config->DB->AUTOLOAD($self->{DBN})->dsn->[$i];
+    my $cb = $cfg->[3] && $cfg->[3]->{Callbacks};
     my $dbh = DBI->connect(@{$cfg}[0 .. 2], {
         %{$cfg->[3] || {}},
+        ($cb ? (Callbacks => {%$cb}) : ()),
         PrintError => 0,
         RaiseError => 0,
         RootClass => $proj->DBI,
         private_flapp_dbh => my $pfd = [$self => $i], # [dbh_pool, dbh_id, no_txn]
     });
-    my $ocd; #on_connect_do
     if($dbh){
         $proj->_weaken_($pfd->[0]);
         $dbh->STORE(RaiseError => 1);
-        $ocd = $cfg->[4];
     }else{
         die $DBI::errstr if !$i;
         warn "Trying master dbh because slave($self->{DBN}:$i) connection failed: $DBI::errstr";
@@ -36,13 +36,6 @@ sub connect {
         return $org;
     }
     $self->{DBHS}[$i] = $dbh;
-    if($ocd){
-        if(ref $ocd eq 'CODE'){
-            $ocd->($dbh, $self->{DBN}, $i, $cfg);
-        }else{
-            $dbh->no_txn_do(sub{ $dbh->do($_) for @$ocd });
-        }
-    }
     $dbh;
 }
 
