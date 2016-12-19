@@ -55,6 +55,7 @@ sub load :Action {
     $opt{truncate} = $m eq 'truncate' ? 1 : 0;
     die 'Truncate table not allowed' if $opt{truncate} && !$c->app_config->allow_db_truncate;
     $opt{header} = $c->args->{HEADER} if exists $c->args->{HEADER};
+    $opt{commit_per} = $c->args->{PER} if exists $c->args->{PER};
     
     my $cnt = $proj->schema($db)->storage->load_tsv($f => $t, \%opt);
     print "$t ... ok($cnt)\n";
