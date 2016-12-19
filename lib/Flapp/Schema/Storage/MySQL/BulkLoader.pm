@@ -63,7 +63,7 @@ sub new {
     $self->{-a} = do{
         my $dbh = $self->{storage}->dbh;
         my $phf = [map{ $self->{storage}->placeholder_for($self->{table}, $_) } @{$self->{-c}}];
-        my $mal = $dbh->selectall_arrayref("SHOW VARIABLES LIKE 'max_allowed_packet'")->[0][1];
+        my $mal = $dbh->selectall_arrayref("SHOW VARIABLES LIKE 'max_allowed_packet'")->[0][1] - 2;
         my $sql = "INSERT INTO $self->{table}(".join(',', @{$self->{-c}}).") VALUES";
         [$dbh, $phf, $mal, '', 0, $sql, do{ use bytes; length($sql) }];
     } if !$self->{-n};
