@@ -8,7 +8,7 @@ sub add {
         my $i = -1;
         my $ph;
         my $vs = join(',', map{
-            my $v = !defined($_) ? 'NULL' : /^[0-9]+\z/ ? $_ : $auto->[0]->quote($_);
+            my $v = !defined($_) ? 'NULL' : ($_ eq '0' || /\A[1-9][0-9]*\z/) ? $_ : $auto->[0]->quote($_);
             $auto->[1][++$i] eq '?' ? $v : ($ph = $auto->[1][$i]) =~ s/\?/$v/ ? $ph : die $ph;
         } @_);
         my $len = do{ use bytes; length($vs) } + 3;
