@@ -78,7 +78,7 @@ sub _webgrep_fetch {
     my($self, $c) = @_;
     my $f = $c->stash('fetch') || return;
     while(my $path = $f->{H}->getline){
-        next if $path =~ /\.([a-z]+)$/ && $f->{x}{$1};
+        next if $path =~ /\.([0-9a-z]+)$/ && $f->{x}{$1};
 print $path;
         chomp($path);
         my($line, $i, $m, $n, @buf, @lines);
