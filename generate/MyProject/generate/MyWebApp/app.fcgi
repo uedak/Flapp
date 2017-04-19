@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use Plack::Handler::FCGI;
 use Plack::Util;
