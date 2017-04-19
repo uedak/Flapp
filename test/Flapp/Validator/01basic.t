@@ -28,6 +28,87 @@ my @e;
     
     is int(@e = $proj->validate("①\t②③④", qw/chr(alpha)/)), 1;
     is_deeply \@e, [[101, '「①」, タブ文字, 「②」, ...']];
+
+    my @v;
+    ok  !$proj->validate('1',  @v = qw/chr(int)/);
+    ok !!$proj->validate('a',  @v);
+    ok !!$proj->validate('1a', @v);
+
+    ok  !$proj->validate('a',  @v = qw/chr(-int)/);
+    ok !!$proj->validate('1',  @v);
+    ok !!$proj->validate('1a', @v);
+
+    ok  !$proj->validate('1',  @v = qw/chr(alpha+int)/);
+    ok  !$proj->validate('a',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok  !$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok  !$proj->validate('a',  @v = qw/chr(url+int)/);
+    ok  !$proj->validate('1',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok  !$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok  !$proj->validate('a',  @v = qw/chr(url-int)/);
+    ok !!$proj->validate('1',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok !!$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok !!$proj->validate('a',  @v = qw/chr(-url+int)/);
+    ok  !$proj->validate('1',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok !!$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok !!$proj->validate('a',  @v = qw/chr(-url-int)/);
+    ok !!$proj->validate('1',  @v);
+    ok  !$proj->validate(' ',  @v);
+    ok !!$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok  !$proj->validate('a',  @v = qw/chr(int+url)/);
+    ok  !$proj->validate('1',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok  !$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok !!$proj->validate('a',  @v = qw/chr(int-url)/);
+    ok !!$proj->validate('1',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok !!$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok  !$proj->validate('a',  @v = qw/chr(-int+url)/);
+    ok  !$proj->validate('1',  @v);
+    ok !!$proj->validate(' ',  @v);
+    ok  !$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
+
+    ok !!$proj->validate('a',  @v = qw/chr(-int-url)/);
+    ok !!$proj->validate('1',  @v);
+    ok  !$proj->validate(' ',  @v);
+    ok !!$proj->validate('1a', @v);
+    ok !!$proj->validate('1 ', @v);
+    ok !!$proj->validate('a ', @v);
+    ok !!$proj->validate('1a ', @v);
 }
 
 {

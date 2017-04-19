@@ -12,21 +12,19 @@ sub chr {
     return if !defined $$vr || $$vr eq '';
     
     my @opt;
-    push @opt, [$1, $2] while $opt =~ s/([\+\-])([0-9A-Za-z_]+)\z//;
-    push @opt, ['+', $opt] if $opt ne '';
-    $_->[2] = $self->_global_->{chr}{$_->[1]} ||= $self->_chr($_->[1]) for @opt;
-    
+    push @opt, [$1 || '+', $2, $self->_global_->{chr}{$2} ||= $self->_chr($2)]
+        while $opt =~ /\G([\+\-]?)([^\+\-]+)/g;
     my(%chr, @chr);
     $self->Util->each_chr_do($vr, sub{
-        my $ng = $opt[0]->[0] eq '+';
+        my($ok, $ng);
         foreach(@opt){
             if(exists $_->[2]{$_[0]}){
-                return 1 if $_->[0] eq '+';
-                $ng = 1;
-                last;# if $_->[0] eq '-';
+                $ok = $_->[0] eq '+';
+            }else{
+                $ng = 1 if $_->[0] eq '+';
             }
         }
-        return 1 if !$ng;
+        return 1 if defined $ok ? $ok : !$ng;
         push @chr, $_[0] if !$chr{$_[0]}++;
         @chr <= 3;
     }, {force => 1, stop_if_false => 1});
