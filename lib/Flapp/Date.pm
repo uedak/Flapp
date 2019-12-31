@@ -7,7 +7,7 @@ use Time::Local qw/timegm_nocheck/;
 use overload @OVERLOAD;
 
 our $IS_32BIT = 1; #(~0 >> 31 == 1); #Some linux64 doesn't support 2038 problems...
-our $LOCAL_TIME_ZONE_OFFSET = 3600 * 9;  # timegm_nocheck(localtime(0));
+our $LOCAL_TIME_ZONE_OFFSET = timegm_nocheck(localtime(0)) % 86400;
 our $MIN_EPOCH = $^O eq 'MSWin32' ? 0 : -2147483648;
 our @YEAR_CACHE = (
     [400, 12622780800],
